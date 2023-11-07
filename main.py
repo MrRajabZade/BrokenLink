@@ -37,7 +37,15 @@ def check(link, domain):
         return "[#]"
 
 def find_urls(url):
-    response = get(url)
+    try:
+        response = get(url)
+    except Exception as error:
+        url = "https://"+str(url)
+        try:
+            response = get(url)
+        except:
+            print("Invalid URL")
+            sys.exit()
     soup = BeautifulSoup(response.text, 'html.parser')
     urls = []
     for url in soup.find_all(href=True):
@@ -69,7 +77,7 @@ with Progress(transient=True) as progress:
             else:
                 if str(link[0]) == "/":
                     continue
-                else:
+                else: 
                     redirected_site = get_redirected_site(link)
                     if redirected_site:
                         link = str(redirected_site)
@@ -83,13 +91,23 @@ with Progress(transient=True) as progress:
                         continue
                     else:
                         if str(response) == "[Error]":
-                            urls_error.append(str(link))
-                            continue
-                        else:
-                            if str(link) in "https://":
-                                urls_broken.append(str(link))
+                            s = str(link)
+                            link = "https://" + str(link)
+                            response = check(link, domain)
+                            if str(response) == "[Error]":
+                                urls_error.append(str(s))
                             else:
+                                domain_link = get_domain(link)
+                                if str(domain) in str(domain_link):
+                                    continue
+                                else:
+                                    urls_broken.append(str(link))
+                        else:
+                            domain_link = get_domain(link)
+                            if str(domain) in str(domain_link):
                                 continue
+                            else:
+                                urls_broken.append(str(link))
 
         progress.update(check1, advance=1)
 data = "{} Links; {} Broken links; {} Redirect link; {} Error".format(str(len(urls)), str(len(urls_broken)), str(len(urls_redirected)), str(len(urls_error)))
