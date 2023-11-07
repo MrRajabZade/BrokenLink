@@ -1,0 +1,4 @@
+requests
+tldextract
+bs4
+rich
