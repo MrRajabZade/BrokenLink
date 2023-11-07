@@ -26,7 +26,7 @@ def check(link, domain):
     try:
         response = get(url=link)
     except:
-        return "[Error] " + str(link)
+        return "[Error]"
     if str(response.status_code) == "404":
         domain_link = get_domain(link)
         if str(domain) in str(domain_link):
@@ -73,13 +73,17 @@ with Progress(transient=True) as progress:
                     redirected_site = get_redirected_site(link)
                     if redirected_site:
                         link = str(redirected_site)
-                        urls_redirected.append(str(redirected_site))
+                        domain_link = get_domain(link)
+                        if str(domain) in str(domain_link):
+                            continue
+                        else:
+                            urls_redirected.append(str(redirected_site))
                     response = check(link, domain)
                     if str(response) == "[#]":
                         continue
                     else:
                         if str(response) == "[Error]":
-                            urls_error.append(str(response))
+                            urls_error.append(str(link))
                             continue
                         else:
                             if str(link) in "https://":
@@ -91,6 +95,7 @@ with Progress(transient=True) as progress:
 data = "{} Links; {} Broken links; {} Redirect link; {} Error".format(str(len(urls)), str(len(urls_broken)), str(len(urls_redirected)), str(len(urls_error)))
 print("Total URLs: {};".format(data))
 try:
+
     file1 = open("Result.txt", "x")
 except FileExistsError:
     file1 = open("Result.txt", "w")
@@ -102,5 +107,5 @@ if urls_redirected:
         file1.write("[Redirect] "+str(i)+"\n")
 if urls_error:
     for i in urls_error:
-        file1.write(str(i)+"\n")
+        file1.write("[Error] "+str(i)+"\n")
 file1.close()
