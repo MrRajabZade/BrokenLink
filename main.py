@@ -3,7 +3,8 @@ import tldextract
 from requests import *
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
-from rich.progress import Progress
+import threading
+from colorama import Fore
 
 def get_domain(url):
     extracted = tldextract.extract(str(url))
@@ -30,11 +31,11 @@ def check(link, domain):
     if str(response.status_code) == "404":
         domain_link = get_domain(link)
         if str(domain) in str(domain_link):
-            return "[#]"
+            return None
         else:
-            return link
+            return str(link)
     else:
-        return "[#]"
+        return None
 
 def find_urls(url):
     try:
@@ -56,74 +57,65 @@ def find_urls(url):
             urls.append(url)
     return urls
 
-try:
-    url = str(sys.argv[1])
-except:
-    url = input("Enter url: ")
-with Progress(transient=True) as progress:
-    check1 = progress.add_task("Check", total=3)
-
-    while not progress.finished:
-        domain=get_domain(url)
-        progress.update(check1, advance=1)
-        urls = find_urls(url)
-        progress.update(check1, advance=1)
-        urls_broken = []
-        urls_error = []
-        urls_redirected = []
-        for link in urls:
-            if str(link) == "":
+def progress():
+    try:
+        url = str(sys.argv[1])
+    except:
+        url = input("Enter URL: "+Fore.MAGENTA)
+        
+    domain=get_domain(url)
+    urls = find_urls(url)
+    urls_broken = []
+    urls_error = []
+    urls_redirected = []
+    for link in urls:
+        if str(link) == "":
+            continue
+        else:
+            if str(link[0]) == "/":
                 continue
-            else:
-                if str(link[0]) == "/":
-                    continue
-                else: 
-                    redirected_site = get_redirected_site(link)
-                    if redirected_site:
-                        link = str(redirected_site)
-                        domain_link = get_domain(link)
-                        if str(domain) in str(domain_link):
-                            continue
-                        else:
-                            urls_redirected.append(str(redirected_site))
-                    response = check(link, domain)
-                    if str(response) == "[#]":
+            else: 
+                redirected_site = get_redirected_site(link)
+                if redirected_site:
+                    link = str(redirected_site)
+                    domain_link = get_domain(link)
+                    if str(domain) in str(domain_link):
                         continue
                     else:
-                        if str(response) == "[Error]":
-                            s = str(link)
-                            link = "https://" + str(link)
-                            response = check(link, domain)
-                            if str(response) == "[Error]":
-                                urls_error.append(str(s))
-                            else:
-                                domain_link = get_domain(link)
-                                if str(domain) in str(domain_link):
-                                    continue
-                                else:
-                                    urls_broken.append(str(link))
+                        urls_redirected.append(str(redirected_site))
+                response = check(link, domain)
+                if str(response) == "[Error]":
+                    s = str(link)
+                    link = "https://" + str(link)
+                    response = check(link, domain)
+                    if str(response) == "[Error]":
+                        if str(s[0]) == '#':
+                            continue
                         else:
-                            domain_link = get_domain(link)
-                            if str(domain) in str(domain_link):
-                                continue
-                            else:
-                                urls_broken.append(str(link))
+                            urls_error.append(str(s))
+                            continue
+                    else:
+                        if response:
+                            urls_broken.append(str(link))
+                        else:
+                            continue
+                else:
+                    if response:
+                        urls_broken.append(str(link))
+                    else:
+                        continue
 
-        progress.update(check1, advance=1)
-data = "{} Links; {} Broken links; {} Redirect link; {} Error".format(str(len(urls)), str(len(urls_broken)), str(len(urls_redirected)), str(len(urls_error)))
-print("Total URLs: {};".format(data))
-try:
+    data = Fore.GREEN+str(len(urls))+Fore.WHITE+" Links; "+Fore.RED+str(len(urls_broken))+Fore.WHITE+" Broken links; "+Fore.BLUE+str(len(urls_redirected))+Fore.WHITE+" Redirect link; "+Fore.YELLOW+str(len(urls_error))+Fore.WHITE+" Error"
+    print(Fore.WHITE+"Total URLs: {};".format(data))
+    if urls_broken:
+        for i in urls_broken:
+            print(Fore.RED+"[Broken] "+Fore.WHITE+str(i))
+    if urls_redirected:
+        for i in urls_redirected:
+            print(Fore.BLUE+"[Redirect] "+Fore.WHITE+str(i))
+    if urls_error:
+        for i in urls_error:
+            print(Fore.YELLOW+"[Error] "+Fore.WHITE+str(i))
 
-    file1 = open("Result.txt", "x")
-except FileExistsError:
-    file1 = open("Result.txt", "w")
-if urls_broken:
-    for i in urls_broken:
-        file1.write("[Broken] "+str(i)+"\n")
-if urls_redirected:
-    for i in urls_redirected:
-        file1.write("[Redirect] "+str(i)+"\n")
-if urls_error:
-    for i in urls_error:
-        file1.write("[Error] "+str(i)+"\n")
-file1.close()
+x = threading.Thread(target=progress)
+x.start()
