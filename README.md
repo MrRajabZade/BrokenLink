@@ -1,43 +1,46 @@
 # BrokenLink
 ### Description
 
-This script checks for broken and redirected links on a given webpage. It retrieves all the URLs from the webpage, follows any redirects, and checks the response status code for each URL. The script outputs the total number of URLs, the number of broken links, the number of redirected links, and any errors encountered during the process.
-Requirements
+This is a simple but advanced script that can find broken links and a few other things from a URL.
 
-Built on Python version 3.11.2
+This script was last tested on Python version 3.11.2
 
-### Installation
+## Setup
 
-Clone the repository:
+1. Install the required modules:
 
-```shell
-git clone https://github.com/MrRajabZade/BrokenLink/
+   ```bash
+   pip install requests tldextract beautifulsoup4 colorama
+   ```
+
+2. Run the script:
+
+   ```bash
+   python script.py
+   ```
+
+   or
+
+   ```bash
+   python3 script.py
+   ```
+
+   If you do not want to use command line arguments, the script will prompt you to enter the URL.
+
+## Results
+
+The script checks the links on the main URL page and displays the total number of links, broken links, links that redirect to another address, and links with errors.
+
+Sample output:
+
+```
+Total URLs: 100 Links; 5 Broken links; 3 Redirect link; 2 Error
+[Broken] https://example.com/link1
+[Broken] https://example.com/link2
+[Redirect] https://redirected-link.com
+[Error] https://example.com/link3
+
+...
 ```
 
-Install the required libraries:
-
-```shell
-python -m pip install -r requirements.txt
-```
-
-### Usage
-
-Open a terminal and navigate to the cloned repository's directory.
-
-Run the script using the following command:
-
-```shell
-python main.py [URL]
-```
-
-Replace [URL] with the URL of the webpage you want to check. If no URL is provided as a command-line argument, the script will prompt you to enter a URL during runtime.
-
-Wait for the script to finish. It will display a progress bar indicating the status of the link checks.
-
-Once the script completes, it will generate a file named "Result.txt" in the same directory. This file will contain the broken links, redirected links, and any errors encountered.
-
-### Example
-
-```shell
-python main.py https://example.com
-```
+Please note that this README.md file is just an example and you can modify it according to your needs.
